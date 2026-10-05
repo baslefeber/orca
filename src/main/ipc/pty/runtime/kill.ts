@@ -299,6 +299,12 @@ export async function stopAndWaitPtyFromRuntimeController(
     return false
   }
   const incarnationId = finishPtyShutdown(ptyId, connectionId, store)
+  console.warn('[diag-close] stopAndWait confirmed', {
+    ptyId,
+    connectionId,
+    providerExitObserved,
+    incarnationId
+  })
   if (!providerExitObserved) {
     // The owning provider's fresh inventory observed absence, so this is a
     // death certificate even when its exit event was missed.
@@ -313,7 +319,8 @@ export async function stopAndWaitPtyFromRuntimeController(
     // Why: an SSH exit frame reaches the runtime only after its output intake drains, so callers
     // reading the verdict right after this stop would otherwise see a still-connected PTY.
     const waitUntil = Math.min(deadlineMs ?? Infinity, Date.now() + OBSERVED_EXIT_RECORD_WAIT_MS)
-    await runtime?.waitForPtyExitRecord?.(ptyId, waitUntil - Date.now())
+    const recorded = await runtime?.waitForPtyExitRecord?.(ptyId, waitUntil - Date.now())
+    console.warn('[diag-close] stopAndWait observed exit', { ptyId, recorded })
   }
   return true
 }
