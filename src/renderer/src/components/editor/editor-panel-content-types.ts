@@ -60,6 +60,7 @@ export type FileContent = {
 }
 
 export type DiffContent = GitDiffResult & {
+  loadError?: boolean
   /** Superseded by an external change; still rendered until the lazy reload lands. */
   isStale?: boolean
 }
