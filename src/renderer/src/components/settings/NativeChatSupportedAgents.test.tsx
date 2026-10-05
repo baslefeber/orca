@@ -22,6 +22,7 @@ const EXPECTED_SUPPORTED_AGENTS = [
   'opencode2'
 ] as const satisfies readonly TuiAgent[]
 const SUPPORTED_AGENTS_LABEL_KEY = 'auto.components.settings.NativeChatSupportedAgents.label'
+const MISSING_LABEL_LOCALE = 'test-native-label'
 
 function getRenderedChips(): { agent: string; label: string; role: string }[] {
   const markup = renderToStaticMarkup(<NativeChatSupportedAgents />)
@@ -37,6 +38,7 @@ function getRenderedChips(): { agent: string; label: string; role: string }[] {
 describe('NativeChatSupportedAgents', () => {
   afterEach(async () => {
     await i18n.changeLanguage('en')
+    i18n.removeResourceBundle(MISSING_LABEL_LOCALE, 'translation')
   })
 
   it('keeps the advertised list and support predicate on the independent contract', () => {
@@ -85,8 +87,11 @@ describe('NativeChatSupportedAgents', () => {
   })
 
   it('renders the English fallback when the active locale lacks the label key', async () => {
-    await i18n.changeLanguage('es')
-    expect(i18n.getResource('es', 'translation', SUPPORTED_AGENTS_LABEL_KEY)).toBeUndefined()
+    i18n.addResourceBundle(MISSING_LABEL_LOCALE, 'translation', {})
+    await i18n.changeLanguage(MISSING_LABEL_LOCALE)
+    expect(
+      i18n.getResource(MISSING_LABEL_LOCALE, 'translation', SUPPORTED_AGENTS_LABEL_KEY)
+    ).toBeUndefined()
 
     const markup = renderToStaticMarkup(<NativeChatSupportedAgents />)
 

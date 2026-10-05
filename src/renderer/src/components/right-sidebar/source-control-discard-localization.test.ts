@@ -7,7 +7,21 @@ afterEach(async () => {
 })
 
 describe('discard descriptions with real locale catalogs', () => {
-  it.each(['en', 'es', 'fr', 'ja', 'ko', 'zh'] as const)(
+  it('describes preserving staged changes in English', async () => {
+    await i18n.changeLanguage('en')
+    expect(
+      getDiscardEntryConfirmationCopy({ area: 'unstaged', path: 'changed.txt', status: 'modified' })
+        .description
+    ).toBe('This will revert the unstaged changes to this file. This cannot be undone.')
+    expect(
+      getDiscardEntryConfirmationCopy({ area: 'unstaged', path: 'removed.txt', status: 'deleted' })
+        .description
+    ).toBe(
+      'This will restore the last staged version and discard the deletion. This cannot be undone.'
+    )
+  })
+
+  it.each(['es', 'fr', 'ja', 'ko', 'zh'] as const)(
     'uses current index-preserving descriptions in %s',
     async (locale) => {
       await i18n.changeLanguage(locale)
@@ -17,7 +31,13 @@ describe('discard descriptions with real locale catalogs', () => {
           path: 'changed.txt',
           status: 'modified'
         }).description
-      ).toBe('This will revert the unstaged changes to this file. This cannot be undone.')
+      ).toBe(
+        i18n.getResource(
+          locale,
+          'translation',
+          'sourceControl.discard.unstagedChangesDescription'
+        ) ?? 'This will revert the unstaged changes to this file. This cannot be undone.'
+      )
       expect(
         getDiscardEntryConfirmationCopy({
           area: 'unstaged',
@@ -25,7 +45,12 @@ describe('discard descriptions with real locale catalogs', () => {
           status: 'deleted'
         }).description
       ).toBe(
-        'This will restore the last staged version and discard the deletion. This cannot be undone.'
+        i18n.getResource(
+          locale,
+          'translation',
+          'sourceControl.discard.restoreStagedVersionDescription'
+        ) ??
+          'This will restore the last staged version and discard the deletion. This cannot be undone.'
       )
     }
   )
