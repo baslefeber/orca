@@ -77,7 +77,7 @@ function launchEnv(): Record<string, string> {
 
 /** Keeps the app's SSH lines in the test output, so a failed connect explains itself. */
 function sshStderr(chunk: string): void {
-  if (chunk.includes('[ssh]') || chunk.includes('orcad')) {
+  if (/\[(ssh|diag-close|pty|runtime)\]|orcad/u.test(chunk)) {
     process.stderr.write(chunk)
   }
 }
@@ -595,6 +595,10 @@ test('@orcad-cli-relay-kept an open relay terminal keeps a Windows host on the r
 
     // The CLI closes the relay terminals; with none left, the next connect converts.
     // The close must confirm the relay PTY's exit (#25304); its timing tells a lagging record apart.
+    const listed = await runCompiledOrcaCli(session.userDataDir, [
+      'terminal', 'list', '--worktree', `id:${remote.worktreeId}`, '--json'
+    ])
+    console.log(`[cli-matrix] terminal list before close: ${listed.stdout}`)
     const closeStartedAt = Date.now()
     const closed = await runCompiledOrcaCli(session.userDataDir, [
       'terminal',

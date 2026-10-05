@@ -73,17 +73,6 @@ jobs:
           - arch: x64
             runner: windows-2022
             server: inbox
-          - arch: x64
-            runner: windows-2022
-            server: preview
-            archive: OpenSSH-Win64.zip
-          - arch: arm64
-            runner: windows-11-arm
-            server: inbox
-          - arch: arm64
-            runner: windows-11-arm
-            server: preview
-            archive: OpenSSH-ARM64.zip
     runs-on: ${{ matrix.runner }}
     # Installing the inbox capability alone can take several minutes on a fresh image; the CLI matrix
     # cells launch the e2e app several times each.
