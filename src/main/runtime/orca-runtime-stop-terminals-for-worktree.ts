@@ -72,6 +72,20 @@ export class OrcaRuntimeWithStopTerminalsForWorktree extends OrcaRuntimeWithReso
       const sessionHostId = this.getWorkspaceSessionHostIdForWorktree(worktree.id)
       const snapshot = await this.listMobileSessionTabs(`id:${worktree.id}`)
       const targetPtyIds = this.collectWorktreePtyIds(worktree.id, hostFence, true)
+      const describePty = (ptyId: string) => {
+        const pty = this.ptysById.get(ptyId)
+        return {
+          ptyId,
+          hasRecord: Boolean(pty),
+          connected: pty?.connected,
+          lastExitCode: pty?.lastExitCode,
+          incarnationId: pty?.incarnationId,
+          connectionId: pty?.connectionId,
+          leaf: this.leafExistsForPty(ptyId),
+          verdict: this.getPtyLivenessVerdict(ptyId)
+        }
+      }
+      console.warn('[diag-close] targets before close', [...targetPtyIds].map(describePty))
       const parentTabIds = [
         ...new Set(
           snapshot.tabs.flatMap((tab) => (tab.type === 'terminal' ? [tab.parentTabId] : []))
@@ -93,6 +107,10 @@ export class OrcaRuntimeWithStopTerminalsForWorktree extends OrcaRuntimeWithReso
       const { stopped } = await this.stopTerminalsForWorktree(`id:${worktree.id}`, {
         resolvedWorktreeId: worktree.id,
         ...hostFence
+      })
+      console.warn('[diag-close] targets after stop', {
+        stopped,
+        targets: [...targetPtyIds].map(describePty)
       })
       const ptyStop = summarizeWorktreePtyStopVerdict(
         targetPtyIds,
